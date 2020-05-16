@@ -3,7 +3,8 @@ local mod = {
   name = "Weapon Select",
   version = "1.0.1",
   requirements = {},
-	icon = "img/icon.png",
+  modApiVersion = "2.5.3",
+  icon = "img/icon.png",
   loadedSquads = false
 }
 
@@ -28,39 +29,36 @@ function mod:metadata()
 end
 
 function mod:init()
-  local shop = self:loadScript("shop")
   for _, skill in ipairs(EXTRA_SKILLS) do
-    shop:addWeapon(skill, false)
+    modApi:addWeaponDrop(skill, false)
   end
 
   -- hide secret squad weapons when not unlocked
   Vek_Beetle.GetUnlocked = secretSquadUnlocked
   Vek_Hornet.GetUnlocked = secretSquadUnlocked
   Vek_Scarab.GetUnlocked = secretSquadUnlocked
-end
-
-function mod:load(options,version)
-  local shop = self:loadScript("shop")
-  shop:load()
 
   -- load in weapons from all mod squads
-  -- done during load so we run after the shop's load hook
-  if not self.loadedSquads then
-    self.loadedSquads = true
-    modApi:addModsLoadedHook(function()
-      for _, squad in ipairs(modApi.mod_squads) do
-        -- iterate through each squad member's skill list
-        for i = 2, #squad do
-          local pawn = _G[squad[i]]
-          if pawn ~= nil and pawn.SkillList ~= nil then
-            for _, skill in ipairs(pawn.SkillList) do
-              shop:addWeapon(skill, false)
+  -- done during first load so we run after mods have a chance to load
+  modApi:addModsFirstLoadedHook(function()
+    for _, squad in ipairs(modApi.mod_squads) do
+      -- iterate through each squad member's skill list (skip 1 as its the squad name)
+      for i = 2, #squad do
+        local pawn = _G[squad[i]]
+        if pawn ~= nil and type(pawn.SkillList) == "table" then
+          for _, skill in ipairs(pawn.SkillList) do
+            if modApi.weaponDeck[skill] == nil then
+              -- default to false, in case there is a reason it was disabled
+              modApi:addWeaponDrop(skill, false)
             end
           end
         end
       end
-    end)
-  end
+    end
+  end)
+end
+
+function mod:load(options,version)
 end
 
 return mod
