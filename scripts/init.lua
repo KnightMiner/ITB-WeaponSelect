@@ -1,7 +1,7 @@
 local mod = {
   id = "weapon_select",
   name = "Weapon Select",
-  version = "1.0.0",
+  version = "1.0.1",
   requirements = {},
 	icon = "img/icon.png",
   loadedSquads = false
